@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SubspacePath Pruner | Project Website</title>
+  <meta name="description" content="SubspacePath Pruner: inference-time scenario-specific pruning via subspace-pathway coupling.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#top">
+        <span class="brand-dot"></span>
+        <span>SubspacePath Pruner</span>
+      </a>
+      <nav>
+        <a href="#abstract">Abstract</a>
+        <a href="#motivation">Motivation</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#efficiency">Efficiency</a>
+        <a href="#cases">Cases</a>
+      </nav>
+      <a class="btn btn-soft btn-sm" href="#resources">Resources</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero container">
+      <div class="hero-copy">
+        <p class="pill">ICML 2026 Accepted · Inference-Time Specialization</p>
+        <h1>SubspacePath Pruner</h1>
+        <p class="subtitle">
+          A scenario-level pruning framework that couples representation subspaces in embedding space
+          with sparse executable pathways in parameter space.
+        </p>
+        <div class="author-hero">
+          <p class="author-hero-names">
+            Zhiren Gong<sup>1,2</sup>, Yikun Hou<sup>1,4</sup>, Fan Wu<sup>1</sup>, Che Wang<sup>1</sup>, Fuyao Zhang<sup>1</sup>,
+            Tiantong Wu<sup>1</sup>, Yurong Hao<sup>1</sup>, Jiaming Zhang<sup>1</sup>, Yiyang Duan<sup>1</sup>, Tiantong Wang<sup>1</sup>,
+            Fei Huang<sup>5</sup>, Chau Yuen<sup>3</sup>, Wei Yang Bryan Lim<sup>1</sup>
+          </p>
+          <p class="author-hero-affils">
+            <span><sup>1</sup> College of Computing and Data Science, Nanyang Technological University</span>
+            <span><sup>2</sup> Interdisciplinary Graduate Programme, Nanyang Technological University</span>
+            <span><sup>3</sup> School of Electrical and Electronic Engineering, Nanyang Technological University</span>
+            <span><sup>4</sup> Department of Mathematics and Mathematical Statistics, Umea University</span>
+            <span><sup>5</sup> Alibaba Group</span>
+          </p>
+        </div>
+        <p class="hero-highlight">
+          Moderate pruning on Qwen2.5-14B reaches <strong>47.8 / 44.1 / 31.3</strong> Recall (Selected/OOD/Cross)
+          versus dense <strong>40.9 / 37.2 / 22.8</strong>, while online compilation remains within <strong>0.027-0.068s</strong>.
+        </p>
+        <div class="cta">
+          <a class="btn btn-soft" href="#resources">Paper (coming soon)</a>
+          <a class="btn btn-soft" href="#resources">Code (coming soon)</a>
+          <button id="copyCiteHero" class="btn" type="button">Cite</button>
+        </div>
+      </div>
+      <figure class="card figure-card hero-figure">
+        <img src="./assets/radar_average.png" alt="Model-average radar chart" data-full="./assets/radar_average.png" loading="eager">
+        <figcaption>Figure. Model-average robustness and efficiency profile across domain and dataset shifts.</figcaption>
+      </figure>
+    </section>
+
+    <section class="container metrics">
+      <article><h3>4</h3><p>Backbones evaluated</p></article>
+      <article><h3>6</h3><p>Dataset splits/tests</p></article>
+      <article><h3>47.8 / 44.1 / 31.3 vs 40.9 / 37.2 / 22.8</h3><p>Qwen2.5-14B Recall (moderate vs dense)</p></article>
+      <article><h3>Light: 1.38-3.22x · Agg: 0.88-1.51x</h3><p>Speedup range across four backbones</p></article>
+      <article><h3>0.027-0.068s</h3><p>Online compilation time range</p></article>
+    </section>
+
+    <section id="abstract" class="container section">
+      <h2>Abstract</h2>
+      <article class="card">
+        <p>
+          We study practical <strong>inference-time specialization</strong>: given a frozen LLM and a deployment scenario,
+          compile a reusable budget-bounded subnetwork without scenario-specific supervised training.
+        </p>
+        <p>
+          The core hypothesis is <strong>subspace-pathway coupling</strong>: inputs aligned in similar representation subspaces
+          tend to activate sparse and consistent head-level pathways.
+          SubspacePath operationalizes this with two modules:
+          <strong>Domain-Basis Synthesis (DBS)</strong> and <strong>Probe-based Scenario Pruning (PSP)</strong>.
+        </p>
+        <p>
+          Across XDomainBench splits and cross-dataset benchmarks (CommonsenseQA, Natural Questions, ARC),
+          SubspacePath improves robustness-efficiency trade-offs under moderate and aggressive pruning.
+        </p>
+      </article>
+    </section>
+
+    <section id="motivation" class="container section">
+      <h2>Motivation & Core Insight</h2>
+      <div class="grid2">
+        <article class="card">
+          <h3>Problem</h3>
+          <p>
+            Global static pruning criteria often fail under scenario shifts, while router-heavy approaches add runtime complexity.
+            We need pruning that is <strong>specialized, interpretable, and deployment-friendly</strong>.
+          </p>
+          <h3>Key Insight</h3>
+          <p>
+            Embedding-level domain axes can act as stable coordinates, and probe signals can map those coordinates to
+            executable head pathways. This turns pruning from generic compression into scenario-conditioned compilation.
+          </p>
+          <h3>What Actually Improves</h3>
+          <p>
+            The paper shows gains are largest in OOD and cross-domain settings because scenario-conditioned masks reduce
+            pathway interference. This is a structural effect (better pathway organization), not only parameter removal.
+          </p>
+        </article>
+        <figure class="card figure-card">
+          <img src="./assets/main_new.png" alt="SubspacePath overview pipeline" data-full="./assets/main_new.png" loading="lazy">
+          <figcaption>Figure. End-to-end SubspacePath pipeline: DBS builds domain axes and PSP compiles scenario masks.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="method" class="container section">
+      <h2>Method</h2>
+      <article class="card">
+        <h3>Method Overview (No Training During Deployment)</h3>
+        <p>
+          SubspacePath separates work into an <strong>offline preparation stage</strong> and a lightweight
+          <strong>online compilation stage</strong>. The online stage uses only scenario-start input and does not run optimization.
+        </p>
+        <div class="grid2">
+          <div>
+            <h3>Stage A: DBS (Domain-Basis Synthesis)</h3>
+            <ul>
+              <li>Build input-only domain pools from training-side selected-domain data.</li>
+              <li>Project embeddings to a compact shared space and synthesize domain axes.</li>
+              <li>Select a stable axis subset that balances <strong>separation</strong> and <strong>coverage</strong>.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Stage B: PSP (Probe-based Scenario Pruning)</h3>
+            <ul>
+              <li>Train layer-wise lightweight probes to read axis relevance from residual signals.</li>
+              <li>Cache domain-head importance and an always-keep whitelist of backbone heads.</li>
+              <li>At scenario start, estimate domain mixture and compile one reusable head mask under budget.</li>
+            </ul>
+          </div>
+        </div>
+        <h3>Why This Works</h3>
+        <ul>
+          <li><strong>DBS</strong> gives a stable semantic coordinate system instead of ad-hoc global ranking.</li>
+          <li><strong>PSP</strong> turns semantic alignment into executable pathway scoring.</li>
+          <li><strong>Whitelist + budgeted mask</strong> keeps general capability while removing scenario-conflicting heads.</li>
+          <li>The resulting mask is reused over turns, so overhead is low and deployment-friendly.</li>
+        </ul>
+      </article>
+
+      <div class="grid3 method-flow">
+        <article class="card">
+          <h3>Step 1 · Offline Preparation</h3>
+          <p>Construct domain pools, synthesize DBS axes, and train PSP probes on input-only data.</p>
+          <p class="note">Output: reusable semantic basis + probe toolkit + cached head importance.</p>
+        </article>
+        <article class="card">
+          <h3>Step 2 · Scenario Compilation</h3>
+          <p>Read scenario-start input, infer domain mixture, combine with cached importance, and compile budgeted head mask.</p>
+          <p class="note">Output: one scenario-level executable mask (`m_s`) with whitelist preserved.</p>
+        </article>
+        <article class="card">
+          <h3>Step 3 · Multi-turn Reuse</h3>
+          <p>Reuse the compiled mask for subsequent turns to avoid repeated optimization and keep per-turn overhead low.</p>
+          <p class="note">Result: stable, efficient specialization for coherent multi-turn scenarios.</p>
+        </article>
+      </div>
+
+      <article class="card method-interactive">
+        <h3>Method Evidence (Click to Expand)</h3>
+        <p>Images are supporting evidence; method logic is primary. Click each button to reveal the corresponding figure block.</p>
+        <div class="method-controls">
+          <button class="btn btn-soft btn-sm method-toggle" type="button" data-target="methodDBS">Show DBS Axes Evidence</button>
+          <button class="btn btn-soft btn-sm method-toggle" type="button" data-target="methodPSP">Show PSP Pathway Evidence</button>
+        </div>
+
+        <div id="methodDBS" class="method-panel">
+          <div class="grid2">
+            <figure class="card figure-card method-link" data-group="dbs">
+              <img src="./assets/embedding_space_projection_3d.png" alt="3D embedding projection for selected domains" data-full="./assets/embedding_space_projection_3d.png" loading="lazy">
+              <figcaption>Figure. Selected domain subspaces are geometrically separable in embedding projection.</figcaption>
+            </figure>
+            <figure class="card figure-card method-link" data-group="dbs">
+              <img src="./assets/filtered_orthogonality_matrix.png" alt="Orthogonality matrix for selected domain axes" data-full="./assets/filtered_orthogonality_matrix.png" loading="lazy">
+              <figcaption>Figure. DBS-selected axes achieve higher orthogonality with sufficient semantic coverage.</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div id="methodPSP" class="method-panel">
+          <div class="grid2">
+            <figure class="card figure-card method-link" data-group="psp">
+              <img src="./assets/mechanism.png" alt="Subspace-pathway coupling mechanism visualization" data-full="./assets/mechanism.png" loading="lazy">
+              <figcaption>Figure. Mechanism evidence: subspace alignment patterns map to executable pathway selection behavior.</figcaption>
+            </figure>
+            <figure class="card figure-card method-link" data-group="psp">
+              <img src="./assets/domain_head_cross_section_combined.png" alt="Domain-head cross section importance map" data-full="./assets/domain_head_cross_section_combined.png" loading="lazy">
+              <figcaption>Figure. Domain-specific head-importance cross section supports pathway compilation.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="results" class="container section">
+      <h2>Main Results</h2>
+      <div class="grid3">
+        <article class="card stat-card">
+          <h3>LLaMA-2-13B (Moderate)</h3>
+          <p><strong>43.0 / 32.5 / 20.2</strong> Recall (Selected/OOD/Cross)</p>
+          <p>Dense baseline: 29.6 / 26.1 / 18.4</p>
+        </article>
+        <article class="card stat-card">
+          <h3>LLaMA-2-13B (Aggressive)</h3>
+          <p><strong>34.7 / 30.4 / 22.9</strong> Recall</p>
+          <p>Cross-domain remains above dense under heavier pruning.</p>
+        </article>
+        <article class="card stat-card">
+          <h3>Qwen2.5-14B (Moderate)</h3>
+          <p><strong>47.8 / 44.1 / 31.3</strong> Recall</p>
+          <p>Strong cross-dataset retention on NQ and ARC.</p>
+        </article>
+      </div>
+
+      <div class="grid3">
+        <figure class="card figure-card">
+          <img src="./assets/tradeoff_selected.png" alt="Tradeoff curve on selected split" data-full="./assets/tradeoff_selected.png" loading="lazy">
+          <figcaption>Figure. Trade-off curve on Selected split (LLaMA-2-13B).</figcaption>
+        </figure>
+        <figure class="card figure-card">
+          <img src="./assets/tradeoff_ood.png" alt="Tradeoff curve on OOD split" data-full="./assets/tradeoff_ood.png" loading="lazy">
+          <figcaption>Figure. Trade-off curve on OOD split (LLaMA-2-13B).</figcaption>
+        </figure>
+        <figure class="card figure-card">
+          <img src="./assets/tradeoff_cross.png" alt="Tradeoff curve on cross-domain split" data-full="./assets/tradeoff_cross.png" loading="lazy">
+          <figcaption>Figure. Trade-off curve on Cross-domain split (LLaMA-2-13B).</figcaption>
+        </figure>
+      </div>
+
+      <article class="card">
+        <h3>Performance Interpretation</h3>
+        <p>
+          Gains are not only from removing heads. Scenario-conditioned masks suppress domain-conflicting pathways
+          and preserve axis-coupled heads, reducing latent competition in residual aggregation.
+        </p>
+        <p>
+          This effect is strongest on distribution-shifted settings, where static global ranking methods are
+          more brittle to scenario mismatch.
+        </p>
+      </article>
+
+      <article class="card full-width-table-card">
+        <h3>Main Result Table (LLaMA-2-13B, Full Baselines)</h3>
+        <p class="scroll-hint">Hint: scroll horizontally to view all columns on smaller screens.</p>
+        <div class="table-scroll">
+          <table class="wide-table">
+            <thead>
+              <tr>
+                <th rowspan="2">Method</th>
+                <th colspan="6">Moderate Pruning Recall</th>
+                <th colspan="6">Aggressive Pruning Recall</th>
+              </tr>
+              <tr>
+                <th>Sel</th><th>OOD</th><th>Cross</th><th>CSQA</th><th>NQ</th><th>ARC</th>
+                <th>Sel</th><th>OOD</th><th>Cross</th><th>CSQA</th><th>NQ</th><th>ARC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Dense</td><td>29.6</td><td>26.1</td><td>18.4</td><td>22.27</td><td>30.25</td><td>23.87</td><td>29.6</td><td>26.1</td><td>18.4</td><td>22.27</td><td>30.25</td><td>23.87</td></tr>
+              <tr><td>DaSS</td><td>33.82</td><td>28.62</td><td>19.89</td><td>20.10</td><td>18.80</td><td>19.22</td><td>35.27</td><td>27.84</td><td>15.40</td><td>18.13</td><td>12.42</td><td>16.29</td></tr>
+              <tr><td>Wanda</td><td>26.87</td><td>27.26</td><td>15.43</td><td>17.63</td><td>17.27</td><td>14.38</td><td>18.12</td><td>26.57</td><td>8.77</td><td>13.70</td><td>8.09</td><td>9.50</td></tr>
+              <tr><td>LLM-Pr.</td><td>29.34</td><td>27.81</td><td>18.92</td><td>21.08</td><td>27.63</td><td>23.09</td><td>27.30</td><td>28.15</td><td>17.36</td><td>21.20</td><td>19.12</td><td>21.01</td></tr>
+              <tr><td>RIA</td><td>27.06</td><td>27.03</td><td>15.12</td><td>17.98</td><td>17.24</td><td>14.33</td><td>18.94</td><td>26.69</td><td>8.52</td><td>12.48</td><td>8.06</td><td>9.75</td></tr>
+              <tr><td>Probe Pr.</td><td>29.02</td><td>27.81</td><td>19.08</td><td>21.75</td><td>27.64</td><td>23.32</td><td>15.19</td><td>27.84</td><td>11.54</td><td>21.65</td><td>11.34</td><td>6.96</td></tr>
+              <tr><td><strong>Ours-SubspacePath</strong></td><td><strong>43.00</strong></td><td><strong>32.50</strong></td><td><strong>20.20</strong></td><td>19.43</td><td><strong>33.66</strong></td><td>22.91</td><td><strong>34.70</strong></td><td><strong>30.40</strong></td><td><strong>22.90</strong></td><td>18.40</td><td><strong>24.89</strong></td><td><strong>21.56</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Complete baseline-inclusive recall table for LLaMA-2-13B, matching the paper's moderate/aggressive comparison block.</p>
+      </article>
+
+      <article class="card full-width-table-card">
+        <h3>Main Result Table (More Backbones, Moderate Pruning)</h3>
+        <p class="scroll-hint">Hint: scroll horizontally to view all columns on smaller screens.</p>
+        <div class="table-scroll">
+          <table class="wide-table compact">
+            <thead>
+              <tr>
+                <th>Backbone</th>
+                <th>XDB Selected (Dense/Ours)</th>
+                <th>XDB OOD (Dense/Ours)</th>
+                <th>XDB Cross (Dense/Ours)</th>
+                <th>NQ (Dense/Ours)</th>
+                <th>Speedup (Light/Agg.)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>LLaMA-2-13B</td>
+                <td>29.6 / <strong>43.0</strong></td>
+                <td>26.1 / <strong>32.5</strong></td>
+                <td>18.4 / <strong>20.2</strong></td>
+                <td>30.25 / <strong>33.66</strong></td>
+                <td><strong>3.22 / 1.51</strong></td>
+              </tr>
+              <tr>
+                <td>Qwen2.5-7B</td>
+                <td>40.8 / <strong>46.4</strong></td>
+                <td>33.6 / <strong>41.0</strong></td>
+                <td>22.9 / <strong>27.2</strong></td>
+                <td>17.51 / <strong>19.51</strong></td>
+                <td><strong>2.01 / 0.88</strong></td>
+              </tr>
+              <tr>
+                <td>Qwen2.5-14B</td>
+                <td>40.9 / <strong>47.8</strong></td>
+                <td>37.2 / <strong>44.1</strong></td>
+                <td>22.8 / <strong>31.3</strong></td>
+                <td>19.72 / <strong>27.21</strong></td>
+                <td><strong>1.38 / 1.29</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Aggregated from the main and appendix experiment tables; values shown as representative dense-vs-ours comparisons.</p>
+      </article>
+    </section>
+
+    <section id="efficiency" class="container section">
+      <h2>Efficiency & Ablation</h2>
+      <div class="grid2">
+        <article class="card">
+          <h3>Efficiency (Matched to Main Paper Table)</h3>
+          <ul>
+            <li>LLaMA-2-13B light pruning memory: <strong>13.0 -&gt; 12.1 GB</strong>, speedup <strong>1.26x</strong> (XDomainBench avg).</li>
+            <li>LLaMA-2-13B heavy pruning memory: <strong>13.0 -&gt; 11.7 GB</strong>, speedup <strong>1.24x</strong> (XDomainBench avg).</li>
+            <li>ARC reaches strongest acceleration: <strong>2.21x</strong> at light pruning.</li>
+            <li>Online compilation remains low-latency: <strong>0.027s-0.068s</strong> across tested backbones.</li>
+          </ul>
+          <p class="note">
+            These numbers are directly aligned with the efficiency metrics and pruning-time/speedup tables in the paper.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Ablation (Coupling Components)</h3>
+          <div class="table-scroll">
+            <table class="wide-table compact">
+              <thead>
+                <tr>
+                  <th>Ablation</th>
+                  <th>XDB Sel.</th>
+                  <th>XDB OOD</th>
+                  <th>XDB Cross</th>
+                  <th>CSQA</th>
+                  <th>NQ</th>
+                  <th>ARC</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Dense</td><td>29.6</td><td>26.1</td><td>18.4</td><td>22.27</td><td>30.25</td><td>23.87</td></tr>
+                <tr><td>Full (DBS+PSP)</td><td><strong>34.7</strong></td><td><strong>30.4</strong></td><td><strong>22.9</strong></td><td>19.43</td><td><strong>33.66</strong></td><td><strong>25.62</strong></td></tr>
+                <tr><td>w/o DBS selection</td><td>1.8</td><td>1.4</td><td>0.9</td><td>0.82</td><td>0.40</td><td>1.16</td></tr>
+                <tr><td>w/o whitelist</td><td>22.4</td><td>0.4</td><td>20.2</td><td>0.10</td><td>0.12</td><td>0.23</td></tr>
+                <tr><td>w/o multi-domain mixing</td><td>29.5</td><td>23.5</td><td>19.0</td><td>7.07</td><td>10.68</td><td>17.04</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">Ablation table values are taken from the coupling ablation in the experiment section.</p>
+        </article>
+      </div>
+
+      <div class="grid2">
+        <article class="card">
+          <h3>Pruning Time and Speedup Summary</h3>
+          <div class="table-scroll">
+            <table class="wide-table compact">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Pruning Time (s)</th>
+                  <th>Speedup (Light / Aggressive)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>LLaMA-3.1-8B + Ours</td><td><strong>0.039</strong></td><td><strong>1.41 / 1.35</strong></td></tr>
+                <tr><td>LLaMA-2-13B + Ours</td><td><strong>0.060</strong></td><td><strong>3.22 / 1.51</strong></td></tr>
+                <tr><td>Qwen2.5-7B + Ours</td><td><strong>0.027</strong></td><td><strong>2.01 / 0.88</strong></td></tr>
+                <tr><td>Qwen2.5-14B + Ours</td><td><strong>0.068</strong></td><td><strong>1.38 / 1.29</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article class="card">
+          <h3>Efficiency Insight</h3>
+          <p>
+            The strongest practical property is the offline/online separation:
+            heavy computation is amortized offline, while online compilation stays sub-0.1s.
+            This directly matches multi-turn deployment where one mask is reused through a scenario.
+          </p>
+          <p>
+            Reported speedups are backend-sensitive, so the paper separates raw speedup from retention.
+            This is why some settings still emphasize retention gains even when wall-clock speedup is moderate.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="cases" class="container section">
+      <h2>Case Studies</h2>
+      <div class="grid3">
+        <figure class="card figure-card">
+          <img src="./assets/case_study3.png" alt="Natural Questions case study" data-full="./assets/case_study3.png" loading="lazy">
+          <figcaption>Figure. Cross-dataset case (Natural Questions): better relevance and reduced drift.</figcaption>
+        </figure>
+        <figure class="card figure-card">
+          <img src="./assets/case_study1.png" alt="OOD biology multi-turn case study" data-full="./assets/case_study1.png" loading="lazy">
+          <figcaption>Figure. OOD multi-turn biology case: pruned pathway preserves coherent reasoning.</figcaption>
+        </figure>
+        <figure class="card figure-card">
+          <img src="./assets/case_study2.png" alt="Cross-domain philosophy and sociology case study" data-full="./assets/case_study2.png" loading="lazy">
+          <figcaption>Figure. Cross-domain case: scenario mask helps control mixed-domain interference.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="authors" class="container section">
+      <h2>Authors & Affiliations</h2>
+      <article class="card">
+        <p class="authors">
+          Zhiren Gong<sup>1,2</sup>, Yikun Hou<sup>1,4</sup>, Fan Wu<sup>1</sup>, Che Wang<sup>1</sup>, Fuyao Zhang<sup>1</sup>,
+          Tiantong Wu<sup>1</sup>, Yurong Hao<sup>1</sup>, Jiaming Zhang<sup>1</sup>, Yiyang Duan<sup>1</sup>, Tiantong Wang<sup>1</sup>,
+          Fei Huang<sup>5</sup>, Chau Yuen<sup>3</sup>, Wei Yang Bryan Lim<sup>1</sup>
+        </p>
+        <div class="chips">
+          <span><sup>1</sup> College of Computing and Data Science, NTU Singapore</span>
+          <span><sup>2</sup> Interdisciplinary Graduate Programme, NTU Singapore</span>
+          <span><sup>3</sup> School of EEE, NTU Singapore</span>
+          <span><sup>4</sup> Umea University, Sweden</span>
+          <span><sup>5</sup> Alibaba Group, China</span>
+        </div>
+      </article>
+    </section>
+
+    <section id="resources" class="container section">
+      <h2>Resources</h2>
+      <div class="grid3">
+        <article class="card resource-card">
+          <h3>Paper</h3>
+          <p>ICML 2026 accepted paper. Public URL can be inserted once camera-ready page is available.</p>
+        </article>
+        <article class="card resource-card">
+          <h3>Code</h3>
+          <p>Repository link can be added after internal release.</p>
+        </article>
+        <article class="card resource-card">
+          <h3>Experimental Assets</h3>
+          <p>All figures and tables in this page are rendered from the paper assets in <code>slm_agent/papers</code>.</p>
+        </article>
+      </div>
+
+      <article class="card">
+        <div class="bib-head">
+          <h3>BibTeX</h3>
+          <button id="copyBib" class="btn btn-sm btn-soft" type="button">Copy BibTeX</button>
+        </div>
+        <pre id="bib">@inproceedings{gong2026subspacepathpruner,
+  title   = {SubspacePath Pruner: Inference-time Pruning via Probe-based Representation-Parameter Coupling},
+  author  = {Gong, Zhiren and Hou, Yikun and Wu, Fan and Wang, Che and Zhang, Fuyao and Wu, Tiantong and Hao, Yurong and Zhang, Jiaming and Duan, Yiyang and Wang, Tiantong and Huang, Fei and Yuen, Chau and Lim, Wei Yang Bryan},
+  booktitle = {Forty-third International Conference on Machine Learning},
+  year    = {2026}
+}</pre>
+      </article>
+
+      <article class="card contact-card">
+        <h3>Contact</h3>
+        <p>
+          For collaboration or questions about this project, contact
+          <a class="contact-link" href="mailto:zhiren001@e.ntu.edu.sg">zhiren001@e.ntu.edu.sg</a>.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>SubspacePath Pruner website · private draft for release preparation.</p>
+    </div>
+  </footer>
+
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Close image view">×</button>
+    <img id="lightboxImg" src="" alt="Expanded figure preview">
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
