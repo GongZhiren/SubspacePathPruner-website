@@ -58,13 +58,13 @@
           versus dense <strong>40.9 / 37.2 / 22.8</strong>, while online compilation remains within <strong>0.027-0.068s</strong>.
         </p>
         <div class="cta">
-          <a class="btn btn-soft" href="#resources">Paper (coming soon)</a>
-          <a class="btn btn-soft" href="#resources">Code (coming soon)</a>
+          <a class="btn btn-soft" href="https://openreview.net/forum?id=fvkCjFvWKf" target="_blank" rel="noreferrer">Paper</a>
+          <a class="btn btn-soft" href="https://github.com/GongZhiren/SubspacePathPruner" target="_blank" rel="noreferrer">Code</a>
           <button id="copyCiteHero" class="btn" type="button">Cite</button>
         </div>
       </div>
       <figure class="card figure-card hero-figure">
-        <img src="./assets/radar_average.png" alt="Model-average radar chart" data-full="./assets/radar_average.png" loading="eager">
+        <img class="hero-radar-img" src="./assets/radar_average.png" alt="Model-average radar chart" data-full="./assets/radar_average.png" loading="eager">
         <figcaption>Figure. Model-average robustness and efficiency profile across domain and dataset shifts.</figcaption>
       </figure>
     </section>
@@ -111,17 +111,37 @@
             Embedding-level domain axes can act as stable coordinates, and probe signals can map those coordinates to
             executable head pathways. This turns pruning from generic compression into scenario-conditioned compilation.
           </p>
-          <h3>What Actually Improves</h3>
-          <p>
-            The paper shows gains are largest in OOD and cross-domain settings because scenario-conditioned masks reduce
-            pathway interference. This is a structural effect (better pathway organization), not only parameter removal.
-          </p>
         </article>
         <figure class="card figure-card">
-          <img src="./assets/main_new.png" alt="SubspacePath overview pipeline" data-full="./assets/main_new.png" loading="lazy">
+          <img class="pipeline-hero-img" src="./assets/main_new.png" alt="SubspacePath overview pipeline" data-full="./assets/main_new.png" loading="lazy">
           <figcaption>Figure. End-to-end SubspacePath pipeline: DBS builds domain axes and PSP compiles scenario masks.</figcaption>
         </figure>
       </div>
+      <article class="card dual-insight">
+        <h3>What Actually Improves</h3>
+        <p>
+          Gains are strongest in OOD and cross-domain settings because scenario-conditioned masks reduce pathway
+          interference. The effect comes from better pathway organization, not only parameter removal.
+        </p>
+        <div class="grid2">
+          <div>
+            <h3>OOD Stability</h3>
+            <ul>
+              <li>Domain-axis conditioning keeps execution focused on heads that remain semantically aligned under shift.</li>
+              <li>Compared with global pruning, the mask is less sensitive to activation drift when input style changes.</li>
+              <li>This is why OOD recall rises consistently across backbones at moderate pruning levels.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Cross-Domain Robustness</h3>
+            <ul>
+              <li>Mixed-domain prompts trigger less interference because conflicting pathways are suppressed early.</li>
+              <li>Whitelist preservation keeps shared general reasoning capacity while specialized heads are selectively routed.</li>
+              <li>Result: better retention on Cross/NQ/ARC while still delivering deployment-friendly speedups.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section id="method" class="container section">
@@ -247,6 +267,14 @@
           <figcaption>Figure. Trade-off curve on Cross-domain split (LLaMA-2-13B).</figcaption>
         </figure>
       </div>
+      <article class="card">
+        <h3>Trade-off Insight Across Splits</h3>
+        <ul>
+          <li><strong>Selected split:</strong> SubspacePath sustains the highest recall as sparsity increases, showing stronger in-domain head prioritization.</li>
+          <li><strong>OOD split:</strong> the margin versus generic pruning widens, indicating better resistance to domain mismatch.</li>
+          <li><strong>Cross-domain split:</strong> gains remain under heavier pruning because mask compilation reduces cross-topic pathway collision.</li>
+        </ul>
+      </article>
 
       <article class="card">
         <h3>Performance Interpretation</h3>
@@ -287,7 +315,6 @@
             </tbody>
           </table>
         </div>
-        <p class="note">Complete baseline-inclusive recall table for LLaMA-2-13B, matching the paper's moderate/aggressive comparison block.</p>
       </article>
 
       <article class="card full-width-table-card">
@@ -333,7 +360,14 @@
             </tbody>
           </table>
         </div>
-        <p class="note">Aggregated from the main and appendix experiment tables; values shown as representative dense-vs-ours comparisons.</p>
+      </article>
+      <article class="card">
+        <h3>Table-Level Interpretation</h3>
+        <p>
+          The consistent pattern is that moderate pruning gives the best overall robustness-efficiency point, while aggressive pruning
+          still preserves competitive recall in OOD and cross-domain settings. This indicates SubspacePath primarily reorganizes
+          executable pathways rather than relying on fragile one-shot compression.
+        </p>
       </article>
     </section>
 
@@ -348,9 +382,6 @@
             <li>ARC reaches strongest acceleration: <strong>2.21x</strong> at light pruning.</li>
             <li>Online compilation remains low-latency: <strong>0.027s-0.068s</strong> across tested backbones.</li>
           </ul>
-          <p class="note">
-            These numbers are directly aligned with the efficiency metrics and pruning-time/speedup tables in the paper.
-          </p>
         </article>
         <article class="card">
           <h3>Ablation (Coupling Components)</h3>
@@ -376,7 +407,6 @@
               </tbody>
             </table>
           </div>
-          <p class="note">Ablation table values are taken from the coupling ablation in the experiment section.</p>
         </article>
       </div>
 
@@ -418,6 +448,32 @@
 
     <section id="cases" class="container section">
       <h2>Case Studies</h2>
+      <article class="card">
+        <h3>Case-Level Insights</h3>
+        <div class="grid3">
+          <div>
+            <h3>Natural Questions</h3>
+            <p>
+              The compiled mask reduces off-topic continuation and keeps retrieval-oriented reasoning concise,
+              which improves relevance under dataset shift.
+            </p>
+          </div>
+          <div>
+            <h3>OOD Biology Multi-turn</h3>
+            <p>
+              Subspace-conditioned pathways maintain multi-turn coherence: later responses stay aligned with earlier
+              factual context instead of drifting into generic templates.
+            </p>
+          </div>
+          <div>
+            <h3>Cross-domain QA</h3>
+            <p>
+              In mixed philosophy/sociology prompts, interference control is visible as cleaner reasoning transitions
+              between concepts that would otherwise activate competing heads.
+            </p>
+          </div>
+        </div>
+      </article>
       <div class="grid3">
         <figure class="card figure-card">
           <img src="./assets/case_study3.png" alt="Natural Questions case study" data-full="./assets/case_study3.png" loading="lazy">
@@ -457,15 +513,21 @@
       <div class="grid3">
         <article class="card resource-card">
           <h3>Paper</h3>
-          <p>ICML 2026 accepted paper. Public URL can be inserted once camera-ready page is available.</p>
+          <p>
+            <a href="https://openreview.net/forum?id=fvkCjFvWKf" target="_blank" rel="noreferrer">OpenReview page</a>
+            for the ICML 2026 publication.
+          </p>
         </article>
         <article class="card resource-card">
           <h3>Code</h3>
-          <p>Repository link can be added after internal release.</p>
+          <p>
+            Official implementation:
+            <a href="https://github.com/GongZhiren/SubspacePathPruner" target="_blank" rel="noreferrer">GitHub repository</a>.
+          </p>
         </article>
         <article class="card resource-card">
           <h3>Experimental Assets</h3>
-          <p>All figures and tables in this page are rendered from the paper assets in <code>slm_agent/papers</code>.</p>
+          <p>Figures, tables, and case visualizations are provided for transparent result communication and reproducibility.</p>
         </article>
       </div>
 
@@ -494,7 +556,7 @@
 
   <footer class="footer">
     <div class="container">
-      <p>SubspacePath Pruner website · private draft for release preparation.</p>
+      <p>SubspacePath Pruner website · official open-source project page.</p>
     </div>
   </footer>
 

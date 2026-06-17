@@ -327,6 +327,24 @@ li {
   max-height: 760px;
 }
 
+.hero-radar-img {
+  max-width: 92%;
+  margin: 0 auto;
+}
+
+.pipeline-hero-img {
+  max-width: 108%;
+  margin-left: -4%;
+}
+
+.dual-insight {
+  margin-top: 16px;
+}
+
+.dual-insight p {
+  margin-top: 0;
+}
+
 .figure-card figcaption {
   margin-top: 8px;
   border-top: 1px dashed rgba(120, 165, 218, 0.28);
@@ -599,6 +617,15 @@ pre {
   .grid2,
   .grid3 {
     grid-template-columns: 1fr;
+  }
+
+  .pipeline-hero-img {
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  .hero-radar-img {
+    max-width: 100%;
   }
 
   .metrics {
