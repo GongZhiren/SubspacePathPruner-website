@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutorial · SubspacePath Pruner</title>
+  <meta name="description" content="A narrated, animated ~7-minute video tutorial on SubspacePath Pruner: inference-time, training-free scenario-specific pruning via subspace-pathway coupling.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .tut-hero{padding:44px 0 8px;}
+    .tut-hero .pill{margin-bottom:14px;}
+    .tut-grid{display:grid;grid-template-columns:1.62fr 1fr;gap:18px;align-items:start;margin-top:14px;}
+    .video-card{padding:12px;}
+    .video-card video{width:100%;display:block;border-radius:14px;border:1px solid rgba(118,171,231,.35);
+      background:#04101f;box-shadow:0 18px 44px rgba(0,7,16,.5);}
+    .chapters{padding:16px 18px;}
+    .chapters h4{margin:2px 0 10px;font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:1.02rem;color:#dcecff;letter-spacing:.01em;}
+    .chapters ul{list-style:none;margin:0;padding:0;max-height:498px;overflow:auto;}
+    .chapters li{margin:0 0 2px;}
+    .chapters button{display:flex;width:100%;gap:12px;align-items:baseline;text-align:left;cursor:pointer;
+      border:0;border-radius:10px;padding:9px 11px;background:transparent;color:#b6d1f2;font-size:.95rem;font-weight:500;
+      font-family:Inter,sans-serif;transition:background .18s ease,color .18s ease;}
+    .chapters button:hover{background:rgba(90,147,214,.16);color:#eaf4ff;}
+    .chapters button.on{background:linear-gradient(120deg,rgba(55,215,255,.16),rgba(155,124,255,.14));color:#eaf4ff;
+      box-shadow:inset 0 0 0 1px rgba(115,200,255,.35);}
+    .chapters button span{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.82rem;color:#63d6ff;min-width:42px;}
+    .chap-note{margin:12px 2px 0;font-size:.82rem;color:#8fb0dc;line-height:1.5;}
+    .chap-note a{color:#73d8ff;text-decoration:none;} .chap-note a:hover{text-decoration:underline;}
+    .takeaways{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px;}
+    .tk{display:flex;gap:12px;align-items:flex-start;}
+    .tk-n{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-family:Manrope,sans-serif;
+      font-weight:800;color:#071426;background:linear-gradient(120deg,#57dbff,#37efc7);box-shadow:0 8px 18px rgba(55,215,255,.28);}
+    .tk p{margin:0;font-size:.96rem;}
+    .kicker{font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;color:#63d6ff;}
+    @media (max-width:900px){ .tut-grid{grid-template-columns:1fr;} .takeaways{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="index.html"><span class="brand-dot"></span><span>SubspacePath Pruner</span></a>
+      <nav>
+        <a href="index.html">← Project page</a>
+        <a href="https://github.com/GongZhiren/SubspacePathPruner" target="_blank" rel="noreferrer">Code</a>
+        <a href="https://openreview.net/forum?id=fvkCjFvWKf" target="_blank" rel="noreferrer">Paper</a>
+      </nav>
+      <a class="btn btn-soft btn-sm" href="#watch">Watch</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero tut-hero container" style="display:block;">
+      <p class="pill">Video tutorial · ~7 minutes · narrated &amp; subtitled</p>
+      <h1>A guided tour of <span style="background:linear-gradient(120deg,#57dbff,#8fcbff);-webkit-background-clip:text;background-clip:text;color:transparent;">SubspacePath</span></h1>
+      <p class="subtitle">The problem, the idea, and the evidence — animated from the paper's own results.
+        How to specialize a frozen LLM for one scenario at inference time, with no scenario training.</p>
+    </section>
+
+    <section id="watch" class="container section" style="padding-top:14px;">
+      <div class="tut-grid">
+        <figure class="card figure-card video-card" style="margin:0;">
+          <video id="vid" controls preload="metadata" poster="assets/tutorial_poster.jpg" playsinline>
+            <source src="assets/tutorial.mp4" type="video/mp4">
+            <track kind="captions" src="assets/tutorial.vtt" srclang="en" label="English" default>
+            Your browser does not support the video tag — <a href="assets/tutorial.mp4">download the tutorial</a>.
+          </video>
+        </figure>
+        <aside class="card chapters">
+          <h4>Chapters</h4>
+          <ul>
+            <li><button data-t="0"><span>0:00</span> Introduction</button></li>
+            <li><button data-t="18"><span>0:18</span> I · One model, many scenarios</button></li>
+            <li><button data-t="41"><span>0:41</span> Why global pruning is brittle</button></li>
+            <li><button data-t="86"><span>1:26</span> II · Subspace–pathway coupling</button></li>
+            <li><button data-t="139"><span>2:19</span> DBS · Domain-Basis Synthesis</button></li>
+            <li><button data-t="180"><span>3:00</span> PSP · Offline preparation</button></li>
+            <li><button data-t="230"><span>3:50</span> PSP · Online compilation</button></li>
+            <li><button data-t="270"><span>4:30</span> III · Does it work?</button></li>
+            <li><button data-t="324"><span>5:24</span> Where the gains concentrate</button></li>
+            <li><button data-t="348"><span>5:48</span> IV · Efficiency by design</button></li>
+            <li><button data-t="371"><span>6:11</span> Every piece is load-bearing</button></li>
+            <li><button data-t="394"><span>6:34</span> V · Takeaway</button></li>
+          </ul>
+          <p class="chap-note">Captions are on by default; audio is a synthesized narration. Download:
+            <a href="assets/tutorial.mp4" download>MP4</a> · <a href="assets/tutorial.srt" download>SRT</a></p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="container section" style="padding-top:20px;">
+      <span class="kicker">In this tour you'll see</span>
+      <h2 style="margin-top:8px;">What the tutorial covers</h2>
+      <article class="card">
+        <div class="takeaways">
+          <div class="tk"><div class="tk-n">1</div><p><b>Why global pruning is brittle.</b> One static importance
+            ranking is an average over everything, so under a new scenario the wrong heads get cut.</p></div>
+          <div class="tk"><div class="tk-n">2</div><p><b>Subspace–pathway coupling.</b> DBS builds near-orthogonal
+            domain axes; PSP maps them — via probes, head importance, and a whitelist — to a budgeted head mask.</p></div>
+          <div class="tk"><div class="tk-n">3</div><p><b>That it works and is cheap.</b> Pruned beats dense on
+            Qwen2.5-14B (47.8 / 44.1 / 31.3), with online compilation in 0.027–0.068s, reused every turn.</p></div>
+        </div>
+        <div class="grid3" style="margin-top:18px;">
+          <a class="btn btn-soft" href="index.html"><b>Full project page</b> — interactive figures &amp; tables</a>
+          <a class="btn btn-soft" href="https://github.com/GongZhiren/SubspacePathPruner" target="_blank" rel="noreferrer"><b>Code</b> — reproduce every result</a>
+          <a class="btn btn-soft" href="https://openreview.net/forum?id=fvkCjFvWKf" target="_blank" rel="noreferrer"><b>Paper</b> — ICML 2026 (OpenReview)</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container"><p>SubspacePath Pruner · <a class="contact-link" href="index.html">project page</a> ·
+      <a class="contact-link" href="https://github.com/GongZhiren/SubspacePathPruner" target="_blank" rel="noreferrer">code</a></p></div>
+  </footer>
+
+  <script>
+    const v = document.getElementById('vid');
+    const btns = [...document.querySelectorAll('.chapters button')];
+    btns.forEach(b => b.addEventListener('click', () => {
+      v.currentTime = +b.dataset.t; v.play().catch(()=>{});
+      btns.forEach(x => x.classList.remove('on')); b.classList.add('on');
+      v.scrollIntoView({behavior:'smooth', block:'center'});
+    }));
+    v.addEventListener('timeupdate', () => {
+      let cur = btns[0];
+      for (const b of btns) if (v.currentTime >= +b.dataset.t) cur = b;
+      btns.forEach(x => x.classList.toggle('on', x === cur));
+    });
+  </script>
+</body>
+</html>
