@@ -1,174 +1,146 @@
 WEBVTT
 
 1
-00:00:00.600 --> 00:00:12.816
+00:00:00.400 --> 00:00:11.368
 Let's take a guided tour of SubspacePath Pruner — a way to specialize a large language model for a single deployment scenario, at inference time, with no scenario-specific training.
 
 2
-00:00:13.156 --> 00:00:17.860
-We'll build it up from the problem, to the idea, to the evidence.
+00:00:11.788 --> 00:00:21.292
+Start with how these models are used: a single frozen model is invoked again and again inside one narrow context — a domain, a task, a scenario.
 
 3
-00:00:18.610 --> 00:00:21.442
-Start with how these models are actually used.
-
-4
-00:00:21.782 --> 00:00:30.710
-A single frozen model is often invoked again and again inside one narrow context — a domain, a task, a scenario.
-
-5
-00:00:31.050 --> 00:00:40.914
+00:00:21.472 --> 00:00:29.872
 But it still carries the full weight of every capability it was ever trained for. For any one scenario, most of that is simply idle.
 
-6
-00:00:41.664 --> 00:00:53.136
+4
+00:00:30.292 --> 00:00:40.636
 The natural fix is pruning — remove the components you don't need. But standard pruning ranks importance once, globally, and produces a single fixed compressed model.
 
-7
-00:00:53.476 --> 00:01:04.084
-That ranking is an average over everything. Under a specific scenario — especially an unfamiliar one — the wrong parts get cut, and accuracy turns brittle.
+5
+00:00:40.816 --> 00:00:58.480
+That ranking is an average over everything. Under a specific scenario — especially an unfamiliar one — the wrong parts get cut, and accuracy turns brittle. And the alternatives cost too much: retraining needs data and compute; routers and mixtures add parameters and runtime.
 
-8
-00:01:04.424 --> 00:01:15.536
-The alternatives cost too much. Retraining per scenario needs data and compute you may not have; routers and mixtures add parameters and runtime complexity.
-
-9
-00:01:15.876 --> 00:01:26.244
+6
+00:00:58.660 --> 00:01:08.068
 So the real question is this: can we extract a scenario-specific model from a frozen base, robustly, without any scenario-specific training data?
 
-10
-00:01:26.994 --> 00:01:32.154
-Our answer rests on one observation, which we call subspace-pathway coupling.
+7
+00:01:08.488 --> 00:01:20.680
+Our answer rests on one observation — subspace-pathway coupling. In embedding space, inputs from a domain occupy a compact region: a representation subspace we call an axis.
 
-11
-00:01:32.494 --> 00:01:41.326
-In embedding space, inputs from a domain occupy a compact region — a representation subspace we call an axis.
-
-12
-00:01:41.666 --> 00:01:50.210
+8
+00:01:20.860 --> 00:01:28.276
 In parameter space, the model computes through attention heads. The specific heads that carry a behavior form a pathway.
 
-13
-00:01:50.550 --> 00:02:02.214
+9
+00:01:28.456 --> 00:01:39.112
 The coupling is this: inputs that share a subspace repeatedly activate the same small, stable set of head pathways — and different domains use partially separable ones.
 
-14
-00:02:02.554 --> 00:02:11.122
+10
+00:01:39.292 --> 00:01:47.260
 If that holds, then locating a scenario's subspace tells us which heads it actually needs. Pruning becomes a lookup, not a guess.
 
-15
-00:02:11.462 --> 00:02:19.118
+11
+00:01:47.440 --> 00:01:54.400
 SubspacePath turns this into two modules: Domain-Basis Synthesis, and Probe-based Scenario Pruning.
 
-16
-00:02:19.868 --> 00:02:23.252
+12
+00:01:54.820 --> 00:01:57.820
 First, D-B-S builds the coordinate system.
 
-17
-00:02:23.592 --> 00:02:32.640
-From input-only pools of text, with stopwords removed, we embed each domain and reduce it to a shared low-dimensional space.
+13
+00:01:58.000 --> 00:02:10.312
+From input-only pools of text, with stopwords removed, we embed each domain into a shared low-dimensional space, where each domain becomes an axis — the direction its inputs point along.
 
-18
-00:02:32.980 --> 00:02:37.876
-Each domain becomes an axis — the direction its inputs point along.
-
-19
-00:02:38.216 --> 00:02:48.128
+14
+00:02:10.492 --> 00:02:19.012
 We then select a subset of domains that are as orthogonal as possible while still covering the semantic space, balancing separation against coverage.
 
-20
-00:02:48.468 --> 00:02:59.916
+15
+00:02:19.192 --> 00:02:29.416
 The result is a stable, near-orthogonal basis — here, six domains with pairwise orthogonality above zero point seven seven — shared across every backbone.
 
-21
-00:03:00.666 --> 00:03:08.442
+16
+00:02:29.836 --> 00:02:36.532
 Second, P-S-P bridges those axes to the model's heads. It has an offline stage, prepared just once.
 
-22
-00:03:08.782 --> 00:03:17.542
+17
+00:02:36.712 --> 00:02:45.040
 For every layer, we train a lightweight linear probe to read how strongly a hidden state aligns with each domain axis.
 
-23
-00:03:17.882 --> 00:03:30.722
+18
+00:02:45.220 --> 00:02:56.476
 For every head, we measure its residual write-back — what it adds to the stream — and how much of that energy points along each axis. That gives a head-importance score for each domain.
 
-24
-00:03:31.062 --> 00:03:44.934
-Some heads matter everywhere, for every domain. We find these domain-invariant backbone heads — confirmed by a Mann-Whitney test at p below zero point zero zero one — and protect them as a whitelist.
+19
+00:02:56.656 --> 00:03:11.536
+Some heads matter for every domain. We find these domain-invariant backbone heads — confirmed by a Mann-Whitney test at p below zero point zero zero one — and protect them as a whitelist. All of this is cached, and never runs again at deployment.
 
-25
-00:03:45.274 --> 00:03:49.402
-All of this is cached. It never runs again at deployment.
-
-26
-00:03:50.152 --> 00:03:55.192
+20
+00:03:11.956 --> 00:03:16.540
 Then the online stage — run once per scenario, on the frozen model.
 
-27
-00:03:55.532 --> 00:04:02.372
+21
+00:03:16.720 --> 00:03:23.128
 We read the first few inputs, run the calibrated probes, and estimate the scenario's domain mixture.
 
-28
-00:04:02.712 --> 00:04:11.520
+22
+00:03:23.308 --> 00:03:31.084
 The entropy of that mixture gives the scenario's breadth — narrow, or broadly cross-domain — which sets how many heads to keep.
 
-29
-00:04:11.860 --> 00:04:20.188
+23
+00:03:31.264 --> 00:03:38.752
 We combine the mixture with the cached importance to score every head, always keeping the whitelist, and retain the top heads under budget.
 
-30
-00:04:20.528 --> 00:04:30.008
+24
+00:03:38.932 --> 00:03:47.404
 That yields one head mask — compiled once, then reused for every turn in the scenario. No optimization, no retraining.
 
-31
-00:04:30.758 --> 00:04:43.838
+25
+00:03:47.824 --> 00:03:59.560
 Now the evidence. We test on XDomainBench — selected, out-of-domain, and cross-domain splits — plus cross-dataset transfer to CommonsenseQA, Natural Questions, and ARC.
 
-32
-00:04:44.178 --> 00:05:03.306
+26
+00:03:59.740 --> 00:04:16.780
 On Qwen-2.5-14B under moderate pruning, recall reaches 47.8, 44.1, and 31.3 — against a dense model's 40.9, 37.2, and 22.8. The pruned model beats the full one.
 
-33
-00:05:03.646 --> 00:05:23.782
+27
+00:04:16.960 --> 00:04:35.392
 On LLaMA-2-13B, it reaches 43.0, 32.5, and 20.2, versus 29.6, 26.1, and 18.4 dense — outperforming Wanda, R-I-A, DaSS, LLM-Pruner, and probe pruning at the same budget.
 
-34
-00:05:24.532 --> 00:05:36.652
+28
+00:04:35.812 --> 00:04:46.660
 And the gains are largest exactly where global pruning is weakest — out-of-domain and cross-domain — where scenario-conditioned masks cut the interference between competing pathways.
 
-35
-00:05:36.992 --> 00:05:47.336
+29
+00:04:46.840 --> 00:04:56.488
 Even under aggressive pruning, recall stays above the dense model on all three splits, because the method reorganizes pathways rather than just deleting parameters.
 
-36
-00:05:48.086 --> 00:06:00.110
+30
+00:04:56.908 --> 00:05:07.612
 It's also efficient by construction. The heavy work is offline; online compilation takes just twenty-seven to sixty-eight milliseconds — well under a tenth of a second.
 
-37
-00:06:00.450 --> 00:06:10.794
+31
+00:05:07.792 --> 00:05:16.960
 Inference speedups reach one-point-four to over three times at light pruning, and the single compiled mask is reused across the whole multi-turn scenario.
 
-38
-00:06:11.544 --> 00:06:20.640
+32
+00:05:17.380 --> 00:05:25.468
 Is every part necessary? Yes. Replace the selected axes with random ones, and performance collapses to near zero.
 
-39
-00:06:20.980 --> 00:06:33.796
+33
+00:05:25.648 --> 00:05:36.784
 Remove the whitelist, and out-of-domain recall falls off a cliff. Remove multi-domain mixing, and cross-dataset accuracy drops sharply. Each piece is load-bearing.
 
-40
-00:06:34.546 --> 00:06:48.562
-The paper is honest about scope: gains are strongest at moderate pruning, reasoning-heavy tasks are more sensitive, and results span four models from seven to fourteen billion parameters — not yet the largest.
+34
+00:05:37.204 --> 00:05:45.772
+The paper is honest about scope: gains are strongest at moderate pruning, and results span four models from seven to fourteen billion parameters.
 
-41
-00:06:48.902 --> 00:06:56.726
-But the core message is simple. A component's importance is not global — it is conditional on the scenario.
+35
+00:05:45.952 --> 00:05:52.936
+But the core message is simple: a component's importance is not global — it is conditional on the scenario.
 
-42
-00:06:57.066 --> 00:07:06.642
+36
+00:05:53.116 --> 00:06:01.372
 Find the subspace, and the pathway follows. Compile it once, reuse it, and specialize a frozen model with no training at all.
-
-43
-00:07:06.982 --> 00:07:12.166
-The code, the paper, and an interactive project page are linked on screen.
 
