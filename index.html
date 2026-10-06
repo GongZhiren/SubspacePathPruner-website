@@ -10,13 +10,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./enhance.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2028%2028%27%3E%3Crect%20width%3D%2728%27%20height%3D%2728%27%20rx%3D%277%27%20fill%3D%27%230b1c30%27/%3E%3Cpath%20d%3D%27M5%2020.5L11%2013L17%2016L23%208%27%20fill%3D%27none%27%20stroke%3D%27%2339c2dd%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27/%3E%3Ccircle%20cx%3D%275%27%20cy%3D%2720.5%27%20r%3D%272%27%20fill%3D%27%239b7cff%27/%3E%3Ccircle%20cx%3D%2711%27%20cy%3D%2713%27%20r%3D%272%27%20fill%3D%27%2339c2dd%27/%3E%3Ccircle%20cx%3D%2717%27%20cy%3D%2716%27%20r%3D%272%27%20fill%3D%27%2339c2dd%27/%3E%3Ccircle%20cx%3D%2723%27%20cy%3D%278%27%20r%3D%272.3%27%20fill%3D%27%2343e0bf%27/%3E%3C/svg%3E">
 </head>
 <body>
   <div class="bg-grid" aria-hidden="true"></div>
   <header class="topbar">
     <div class="container nav">
       <a class="brand" href="#top">
-        <span class="brand-dot"></span>
+        <svg class="brand-mark" viewBox="0 0 28 28" width="26" height="26" aria-hidden="true" style="flex:none">
+          <defs><linearGradient id="spm" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#9b7cff"/><stop offset="1" stop-color="#43e0bf"/></linearGradient></defs>
+          <path d="M4 21L11 12.5L17 15.5L24 6.5" fill="none" stroke="url(#spm)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="4" cy="21" r="2.2" fill="#9b7cff"/>
+          <circle cx="11" cy="12.5" r="2.2" fill="#39c2dd"/>
+          <circle cx="17" cy="15.5" r="2.2" fill="#39c2dd"/>
+          <circle cx="24" cy="6.5" r="2.6" fill="#43e0bf"/>
+        </svg>
         <span>SubspacePath Pruner</span>
       </a>
       <nav>
@@ -149,6 +158,50 @@
 
     <section id="method" class="container section">
       <h2>Method</h2>
+
+      <style>
+      .spv{padding:20px 22px;margin:2px 0 24px}
+      .spv-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+      .spv-badge{font:700 11.5px/1 Inter,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#07202f;
+        background:linear-gradient(120deg,var(--cyan,#39c2dd),var(--mint,#43e0bf));padding:6px 13px;border-radius:999px}
+      .spv-sub{color:var(--ink-soft,#9fb2cc);font-size:14px}
+      .spv-body{display:grid;grid-template-columns:260px 1fr;gap:26px;align-items:center}
+      @media(max-width:800px){.spv-body{grid-template-columns:1fr}}
+      .spv-panel h5{margin:0 0 10px;font:700 12.5px/1 Inter;color:#eaf3ff;letter-spacing:.01em}
+      .spv-scenario{font:700 13px/1 Inter;color:var(--cyan,#39c2dd);margin-bottom:10px;min-height:16px}
+      .spv-headgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+      .spv-cell{aspect-ratio:1;border-radius:3px;background:rgba(120,150,190,.12);transition:background .5s cubic-bezier(.2,.7,.2,1),box-shadow .5s}
+      .spv-meter{margin-top:12px;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line,rgba(123,167,224,.26));position:relative;background:rgba(120,150,190,.1)}
+      .spv-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2b8fb0,var(--cyan,#39c2dd));transition:width .8s cubic-bezier(.2,.7,.2,1)}
+      .spv-meter b{position:absolute;inset:0;display:grid;place-items:center;font:700 12px/1 Inter;color:#eaf3ff}
+      .spv-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft,#9fb2cc);margin-top:10px}
+      .spv-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+      .spv-cap{margin:16px 2px 0;color:var(--ink-soft,#9fb2cc);font-size:13.5px;line-height:1.6}
+      .spv-cap b{color:#eaf3ff}
+      </style>
+      <figure class="card figure-card spv" aria-label="Live demonstration of subspace-to-pathway pruning">
+        <div class="spv-head"><span class="spv-badge">SubspacePath · live</span>
+          <span class="spv-sub">pick a scenario &rarr; its <b style="color:#9b7cff">domain subspace</b> &rarr; a <b style="color:var(--cyan,#39c2dd)">sparse head pathway</b> &rarr; prune the rest under budget</span></div>
+        <div class="spv-body">
+          <div class="spv-panel">
+            <h5>representation subspace</h5>
+            <svg id="spvAxes" viewBox="0 0 240 200" style="width:100%;height:auto"></svg>
+          </div>
+          <div class="spv-panel">
+            <h5>head pathway &nbsp;<span style="font-weight:500;color:var(--ink-soft,#9fb2cc)">(layer × attention head)</span></h5>
+            <div class="spv-scenario" id="spvScenario"></div>
+            <div class="spv-headgrid" id="spvGrid"></div>
+            <div class="spv-meter"><i id="spvFill"></i><b id="spvMeter"></b></div>
+            <div class="spv-legend">
+              <span><i style="background:#39c2dd"></i>scenario pathway</span>
+              <span><i style="background:#43e0bf"></i>domain-invariant whitelist</span>
+              <span><i style="background:rgba(120,150,190,.25)"></i>pruned</span>
+            </div>
+          </div>
+        </div>
+        <p class="spv-cap">A lightweight probe maps the embedding-space <b>domain subspace</b> to a sparse, executable <b>head pathway</b> — compiled per scenario under a budget, with <b>no scenario training data</b>. Everything off the pathway (except a small invariant whitelist) is pruned.</p>
+      </figure>
+
       <article class="card">
         <h3>Method Overview (No Training During Deployment)</h3>
         <p>
@@ -571,6 +624,71 @@
     <img id="lightboxImg" src="" alt="Expanded figure preview">
   </div>
 
+  <script>
+  /* SubspacePath live: a scenario's domain subspace maps to a sparse head pathway;
+     everything off the pathway (bar a small invariant whitelist) is pruned. */
+  (function(){
+    var grid=document.getElementById('spvGrid'); if(!grid) return;
+    var axes=document.getElementById('spvAxes'), scEl=document.getElementById('spvScenario'),
+        fill=document.getElementById('spvFill'), meter=document.getElementById('spvMeter');
+    var NS='http://www.w3.org/2000/svg';
+    var ROWS=6, COLS=12, N=ROWS*COLS, cells=[];
+    for(var i=0;i<N;i++){var d=document.createElement('div'); d.className='spv-cell'; grid.appendChild(d); cells.push(d);}
+    function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+    var DOMAINS=['Math','Chemistry','Biology','Law','Code','History'];
+    var whitelist={}; (function(){var r=mulberry(99);for(var k=0;k<6;k++){whitelist[Math.floor(r()*N)]=1;}})();
+    /* build compass */
+    var cx=120,cy=98,R=66, pts=[];
+    DOMAINS.forEach(function(nm,i){
+      var a=-Math.PI/2+i*2*Math.PI/DOMAINS.length;
+      var x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R; pts.push([x,y,a]);
+      var sp=document.createElementNS(NS,'line'); sp.setAttribute('x1',cx);sp.setAttribute('y1',cy);sp.setAttribute('x2',x);sp.setAttribute('y2',y);
+      sp.setAttribute('stroke','rgba(123,167,224,.25)');sp.setAttribute('stroke-width','1.2');sp.setAttribute('data-sp',i);axes.appendChild(sp);
+      var c=document.createElementNS(NS,'circle'); c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r','4');c.setAttribute('fill','#44608a');c.setAttribute('data-pt',i);axes.appendChild(c);
+      var tx=document.createElementNS(NS,'text'); var lx=cx+Math.cos(a)*(R+16), ly=cy+Math.sin(a)*(R+16);
+      tx.setAttribute('x',lx);tx.setAttribute('y',ly+3);tx.setAttribute('fill','#9fb2cc');tx.setAttribute('font-size','10.5');tx.setAttribute('font-family','Inter,sans-serif');
+      tx.setAttribute('text-anchor',Math.abs(Math.cos(a))<0.3?'middle':(Math.cos(a)>0?'start':'end'));tx.setAttribute('data-tx',i);tx.textContent=nm;axes.appendChild(tx);
+    });
+    var core=document.createElementNS(NS,'circle'); core.setAttribute('cx',cx);core.setAttribute('cy',cy);core.setAttribute('r','4.5');core.setAttribute('fill','#9b7cff');axes.appendChild(core);
+    var query=document.createElementNS(NS,'circle'); query.setAttribute('r','5.5');query.setAttribute('fill','#39c2dd');query.setAttribute('opacity','0');
+    query.setAttribute('style','filter:drop-shadow(0 0 5px #39c2dd)');axes.appendChild(query);
+    var qline=document.createElementNS(NS,'line'); qline.setAttribute('stroke','#39c2dd');qline.setAttribute('stroke-width','2');qline.setAttribute('opacity','0');axes.insertBefore(qline,core);
+    var SC=[
+      {name:'Chemistry QA', dom:1, retain:26, seed:11},
+      {name:'Math proof',   dom:0, retain:31, seed:23},
+      {name:'Code generation', dom:4, retain:23, seed:41}
+    ];
+    function render(s){
+      scEl.textContent='scenario:  '+s.name;
+      /* compass */
+      axes.querySelectorAll('[data-pt]').forEach(function(c){var i=+c.getAttribute('data-pt');var on=i===s.dom;
+        c.setAttribute('r',on?6.5:4);c.setAttribute('fill',on?'#39c2dd':'#44608a');c.setAttribute('style',on?'filter:drop-shadow(0 0 6px #39c2dd)':'');});
+      axes.querySelectorAll('[data-sp]').forEach(function(l){var i=+l.getAttribute('data-sp');var on=i===s.dom;
+        l.setAttribute('stroke',on?'#39c2dd':'rgba(123,167,224,.25)');l.setAttribute('stroke-width',on?'2':'1.2');});
+      axes.querySelectorAll('[data-tx]').forEach(function(t){var i=+t.getAttribute('data-tx');t.setAttribute('fill',i===s.dom?'#cfe9f2':'#9fb2cc');t.setAttribute('font-weight',i===s.dom?'700':'400');});
+      var p=pts[s.dom], qx=cx+(p[0]-cx)*0.72, qy=cy+(p[1]-cy)*0.72;
+      query.setAttribute('cx',qx);query.setAttribute('cy',qy);query.setAttribute('opacity','1');
+      qline.setAttribute('x1',cx);qline.setAttribute('y1',cy);qline.setAttribute('x2',qx);qline.setAttribute('y2',qy);qline.setAttribute('opacity','.9');
+      /* pathway */
+      var r=mulberry(s.seed), p0=s.retain/100;
+      cells.forEach(function(d,n){
+        if(whitelist[n]){ d.style.background='rgba(67,224,191,.9)'; d.style.boxShadow='0 0 6px rgba(67,224,191,.5)'; return; }
+        var sc=r(); if(sc<p0){ var inten=0.45+0.55*(1-sc/p0); d.style.background='rgba(57,194,221,'+inten.toFixed(3)+')'; d.style.boxShadow='0 0 5px rgba(57,194,221,.4)'; }
+        else { d.style.background='rgba(120,150,190,.12)'; d.style.boxShadow='none'; }
+      });
+      fill.style.width=s.retain+'%'; meter.textContent='retain '+s.retain+'%  ·  prune '+(100-s.retain)+'%';
+    }
+    var reduce=false; try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+    if(reduce){ render(SC[0]); return; }
+    var i=0, started=false;
+    function tick(){ render(SC[i]); i=(i+1)%SC.length; setTimeout(tick,2600); }
+    function start(){ if(started)return; started=true; tick(); }
+    if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){start();io.disconnect();}});},{threshold:.3});
+      io.observe(grid);
+    } else start();
+  })();
+  </script>
   <script src="./script.js"></script>
   <script src="./enhance.js"></script>
 </body>
